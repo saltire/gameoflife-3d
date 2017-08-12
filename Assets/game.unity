@@ -224,7 +224,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e22b5fba8ec6ce49ab9dc46292fd786, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cell: {fileID: 1078326940502624, guid: 99ca13816228db14b966fcd0d842a241, type: 2}
+  cellAnim: {fileID: 114868452270673042, guid: 99ca13816228db14b966fcd0d842a241, type: 2}
   pattern: galaxy
 --- !u!4 &722081402
 Transform:
