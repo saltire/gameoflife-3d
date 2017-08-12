@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-up" width="13" height="13" tilewidth="1" tileheight="1" backgroundcolor="#ffffff" nextobjectid="1">
+ <tileset firstgid="1" name="01" tilewidth="1" tileheight="1" tilecount="2" columns="2">
+  <image source="01.png" width="2" height="1"/>
+ </tileset>
+ <layer name="Tile Layer 1" width="13" height="13">
+  <data encoding="csv">
+0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,2,2,2,2,2,2,2,2,0,2,2,0,
+0,2,2,2,2,2,2,2,2,0,2,2,0,
+0,0,0,0,0,0,0,0,0,0,2,2,0,
+0,2,2,0,0,0,0,0,0,0,2,2,0,
+0,2,2,0,0,0,0,0,0,0,2,2,0,
+0,2,2,0,0,0,0,0,0,0,2,2,0,
+0,2,2,0,0,0,0,0,0,0,2,2,0,
+0,2,2,0,0,0,0,0,0,0,2,2,0,
+0,2,2,0,0,0,0,0,0,0,0,0,0,
+0,2,2,0,2,2,2,2,2,2,2,2,0,
+0,2,2,0,2,2,2,2,2,2,2,2,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0
+</data>
+ </layer>
+</map>
