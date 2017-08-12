@@ -36,10 +36,11 @@ public class GameOfLifeScript : MonoBehaviour {
 	public CellAnimationScript cellAnim;
 	public string pattern;
 
-	Dictionary<Cell, CellAnimationScript> cells;
+	public float initialDelay = 0.5f;
+	public float frameDuration = 0.5f;
+	float nextFrame = 0;
 
-	float frameTime = 1;
-	float nextFrame;
+	Dictionary<Cell, CellAnimationScript> cells;
 
 	void Start () {
 		XmlDocument xmlDoc = new XmlDocument();
@@ -58,13 +59,13 @@ public class GameOfLifeScript : MonoBehaviour {
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				if (int.Parse(cellsStr[y * width + x]) > 0) {
-					CreateCell(x, y);
+					CreateCell(x, y, true);
 				}
 			}
 		}
 
-		// Schedule the next frame.
-		nextFrame = frameTime;
+		// Schedule the first frame update.
+		nextFrame = initialDelay;
 	}
 
 	void Update () {
@@ -73,7 +74,7 @@ public class GameOfLifeScript : MonoBehaviour {
 		}
 
 		// Destroy any dead cells from the last iteration.
-		foreach (Cell cell in new List<Cell>(cells.Keys.Where(cell => cells[cell].isDead()))) {
+		foreach (Cell cell in new List<Cell>(cells.Keys.Where(cell => cells[cell].IsDead()))) {
 			Destroy(cells[cell].gameObject);
 			cells.Remove(cell);
 		}
@@ -88,17 +89,21 @@ public class GameOfLifeScript : MonoBehaviour {
 
 		// Instantiate a cell animation for every new cell in the next gen.
 		foreach (Cell cell in nextCells.Where(cell => !cells.ContainsKey(cell))) {
-			CreateCell(cell.x, cell.y);
+			CreateCell(cell.x, cell.y, false);
 		}
 
-		// Schedule the next frame.
-		nextFrame += frameTime;
+		// Schedule the next frame update.
+		nextFrame += frameDuration;
 	}
 
-	void CreateCell(int x, int y) {
+	void CreateCell(int x, int y, bool full) {
 		CellAnimationScript anim = Instantiate(cellAnim, transform.position + new Vector3(x, y, 0), Quaternion.identity);
 		anim.transform.parent = transform;
 		cells.Add(new Cell(x, y), anim);
+
+		if (full) {
+			anim.SkipToFull();
+		}
 	}
 
 	HashSet<Cell> GetNextGen() {
