@@ -6,13 +6,37 @@ using System.Xml;
 using UnityEngine;
 using UnityEditor;
 
+// A simple 2D coordinate struct with value equality.
+public struct Cell
+{
+	public int x, y;
+	public Cell(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+	public static bool operator ==(Cell c1, Cell c2) {
+		return c1.x == c2.x && c1.y == c2.y;
+	}
+	public static bool operator !=(Cell c1, Cell c2) {
+		return c1.x != c2.x || c1.y != c2.y;
+	}
+	public override bool Equals(object obj) {
+		if (!(obj is Cell)) {
+			return false;
+		}
+		Cell c = (Cell)obj;
+		return c.x == x && c.y == y;
+	}
+	public override int GetHashCode() {
+		return x << 16 ^ y;
+	}
+}
+
 public class GameOfLifeScript : MonoBehaviour {
 	public GameObject cell;
 	public string pattern;
 
-	int width;
-	int height;
-	bool[,] cells;
+	HashSet<Cell> cells;
 
 	float frameTime = 1;
 	float nextFrame;
@@ -23,9 +47,9 @@ public class GameOfLifeScript : MonoBehaviour {
 
 		// Load the Tiled map layer from the XML document.
 		XmlNode layer = xmlDoc.SelectSingleNode("map/layer");
-		width = int.Parse(layer.Attributes["width"].Value);
-		height = int.Parse(layer.Attributes["height"].Value);
-		cells = new bool[width, height];
+		int width = int.Parse(layer.Attributes["width"].Value);
+		int height = int.Parse(layer.Attributes["height"].Value);
+		cells = new HashSet<Cell>();
 
 		// Parse the CSV data into an array of ints.
 		string[] cellsStr = layer["data"].InnerText.Split(new string[] {","}, System.StringSplitOptions.None);
@@ -33,8 +57,8 @@ public class GameOfLifeScript : MonoBehaviour {
 		// Create a cell in the array for every nonzero int.
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				cells[x, y] = int.Parse(cellsStr[y * width + x]) > 0;
-				if (cells[x, y]) {
+				if (int.Parse(cellsStr[y * width + x]) > 0) {
+					cells.Add(new Cell(x, y));
 					Instantiate(cell, transform.position + new Vector3(x, y, 0), Quaternion.identity);
 				}
 			}
@@ -58,39 +82,42 @@ public class GameOfLifeScript : MonoBehaviour {
 		cells = GetNextGen();
 
 		// Instantiate a cell animation for every cell in the array.
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				if (cells[x, y]) {
-					Instantiate(cell, transform.position + new Vector3(x, y, 0), Quaternion.identity);
-				}
-			}
+		foreach (Cell c in cells) {
+			Instantiate(cell, transform.position + new Vector3(c.x, c.y, 0), Quaternion.identity);
 		}
 
 		// Schedule the next frame.
 		nextFrame += frameTime;
 	}
 
-	bool[,] GetNextGen() {
-		bool[,] nextCells = new bool[width, height];
+	HashSet<Cell> GetNextGen() {
+		HashSet<Cell> nextCells = new HashSet<Cell>();
 
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
+		// Get the bounding box for the current set of cells.
+		int xmin = cells.Select(cell => cell.x).Min();
+		int xmax = cells.Select(cell => cell.x).Max();
+		int ymin = cells.Select(cell => cell.y).Min();
+		int ymax = cells.Select(cell => cell.y).Max();
+
+		// Loop through each coordinate in the bounding box + 1 in each direction.
+		for (int x = xmin - 1; x <= xmax + 1; x++) {
+			for (int y = ymin - 1; y <= ymax + 1; y++) {
+				Cell cell = new Cell(x, y);
 				int neighbours = 0;
 
 				// Count the number of neighbours for this cell.
-				for (int ny = Mathf.Max(0, y - 1); ny <= y + 1 && ny < height; ny++) {
-					for (int nx = Mathf.Max(0, x - 1); nx <= x + 1 && nx < width; nx++) {
-						Debug.Log(string.Format("{0} {1} {2} {3}", x, y, nx, ny));
-						if ((x != nx || y != ny) && cells[nx, ny]) {
+				for (int nx = x - 1; nx <= x + 1; nx++) {
+					for (int ny = y - 1; ny <= y + 1; ny++) {
+						if ((nx != x || ny != y) && cells.Contains(new Cell(nx, ny))) {
 							neighbours++;
 						}
 					}
 				}
 
 				// Determine whether there will be a cell in the next gen based on number of neighbours.
-				nextCells[x, y] =
-					(cells[x, y] && neighbours > 1 && neighbours < 4) ||
-					(!cells[x, y] && neighbours == 3);
+				if ((cells.Contains(cell) && (neighbours == 2 || neighbours == 3)) || (!cells.Contains(cell) && neighbours == 3)) {
+					nextCells.Add(cell);
+				}
 			}
 		}
 
