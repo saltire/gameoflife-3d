@@ -58,7 +58,7 @@ public class GameOfLifeScript : MonoBehaviour {
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				if (int.Parse(cellsStr[y * width + x]) > 0) {
-					cells.Add(new Cell(x, y), Instantiate(cellAnim, transform.position + new Vector3(x, y, 0), Quaternion.identity));
+					CreateCell(x, y);
 				}
 			}
 		}
@@ -88,11 +88,17 @@ public class GameOfLifeScript : MonoBehaviour {
 
 		// Instantiate a cell animation for every new cell in the next gen.
 		foreach (Cell cell in nextCells.Where(cell => !cells.ContainsKey(cell))) {
-			cells.Add(cell, Instantiate(cellAnim, transform.position + new Vector3(cell.x, cell.y, 0), Quaternion.identity));
+			CreateCell(cell.x, cell.y);
 		}
 
 		// Schedule the next frame.
 		nextFrame += frameTime;
+	}
+
+	void CreateCell(int x, int y) {
+		CellAnimationScript anim = Instantiate(cellAnim, transform.position + new Vector3(x, y, 0), Quaternion.identity);
+		anim.transform.parent = transform;
+		cells.Add(new Cell(x, y), anim);
 	}
 
 	HashSet<Cell> GetNextGen() {
