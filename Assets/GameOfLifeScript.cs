@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,8 +38,8 @@ public class GameOfLifeScript : MonoBehaviour {
 	public string pattern;
 
 	public float initialDelay = 0.5f;
-	public float frameDuration = 0.5f;
-	float nextFrame = 0;
+	public float generationDuration = 0.5f;
+	float nextGenTime = 0;
 
 	Dictionary<Cell, CellAnimationScript> cells;
 
@@ -52,24 +53,26 @@ public class GameOfLifeScript : MonoBehaviour {
 		int height = int.Parse(layer.Attributes["height"].Value);
 		cells = new Dictionary<Cell, CellAnimationScript>();
 
-		// Parse the CSV data into an array of ints.
-		string[] cellsStr = layer["data"].InnerText.Split(new string[] {","}, System.StringSplitOptions.None);
-
-		// Create a cell in the array for every nonzero int.
+		// Split the CSV data into rows, and parse them from bottom to top.
+		string[] rows = layer["data"].InnerText.Trim().Split(new char[] {'\n'});
+		Array.Reverse(rows);
 		for (int y = 0; y < height; y++) {
+			// Split each row into an array of ints.
+			string[] cellsStr = rows[y].Split(new char[] {','});
 			for (int x = 0; x < width; x++) {
-				if (int.Parse(cellsStr[y * width + x]) > 0) {
+				// Create a cell in the array for every nonzero int.
+				if (int.Parse(cellsStr[x]) > 0) {
 					CreateCell(x, y, true);
 				}
 			}
 		}
 
-		// Schedule the first frame update.
-		nextFrame = initialDelay;
+		// Schedule the first generation update.
+		nextGenTime = initialDelay;
 	}
 
-	void Update () {
-		if (Time.time < nextFrame) {
+	void Update() {
+		if (Time.time < nextGenTime) {
 			return;
 		}
 
@@ -92,12 +95,12 @@ public class GameOfLifeScript : MonoBehaviour {
 			CreateCell(cell.x, cell.y, false);
 		}
 
-		// Schedule the next frame update.
-		nextFrame += frameDuration;
+		// Schedule the next generation update.
+		nextGenTime += generationDuration;
 	}
 
 	void CreateCell(int x, int y, bool full) {
-		CellAnimationScript anim = Instantiate(cellAnim, transform.position + new Vector3(x, y, 0), Quaternion.identity);
+		CellAnimationScript anim = Instantiate(cellAnim, transform.position + transform.rotation * new Vector3(x, y, 0), transform.rotation);
 		anim.transform.parent = transform;
 		cells.Add(new Cell(x, y), anim);
 
