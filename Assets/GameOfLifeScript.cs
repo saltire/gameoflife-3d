@@ -34,24 +34,26 @@ public struct Cell
 }
 
 public class GameOfLifeScript : MonoBehaviour {
-	public CellAnimationScript cellAnim;
+	public CellScript cellAnim;
 	public string pattern;
+	public Color color;
+	public float speed = 1;
+	public float initialDelay = 0;
 
-	public float initialDelay = 0.5f;
-	public float generationDuration = 0.5f;
+	float generationDuration;
 	float nextGenTime = 0;
 
-	Dictionary<Cell, CellAnimationScript> cells;
+	Dictionary<Cell, CellScript> cells;
 
-	void Start () {
+	void Start() {
+		// Load the Tiled map layer from the XML document.
 		XmlDocument xmlDoc = new XmlDocument();
 		xmlDoc.LoadXml(File.ReadAllText(string.Format("tiled/{0}.tmx", pattern)));
-
-		// Load the Tiled map layer from the XML document.
 		XmlNode layer = xmlDoc.SelectSingleNode("map/layer");
+
 		int width = int.Parse(layer.Attributes["width"].Value);
 		int height = int.Parse(layer.Attributes["height"].Value);
-		cells = new Dictionary<Cell, CellAnimationScript>();
+		cells = new Dictionary<Cell, CellScript>();
 
 		// Split the CSV data into rows, and parse them from bottom to top.
 		string[] rows = layer["data"].InnerText.Trim().Split(new char[] {'\n'});
@@ -66,6 +68,9 @@ public class GameOfLifeScript : MonoBehaviour {
 				}
 			}
 		}
+
+		// Get the effective length of the animation clip so we can schedule generation updates.
+		generationDuration = cellAnim.GetComponent<Animator>().runtimeAnimatorController.animationClips.ToList<AnimationClip>().Max(clip => clip.length) / speed;
 
 		// Schedule the first generation update.
 		nextGenTime = initialDelay;
@@ -100,9 +105,14 @@ public class GameOfLifeScript : MonoBehaviour {
 	}
 
 	void CreateCell(int x, int y, bool full) {
-		CellAnimationScript anim = Instantiate(cellAnim, transform.position + transform.rotation * new Vector3(x, y, 0), transform.rotation);
+		// Instantiate the cell animation and add it to the set.
+		CellScript anim = Instantiate(cellAnim, transform.position + transform.rotation * new Vector3(x, y, 0), transform.rotation);
 		anim.transform.parent = transform;
 		cells.Add(new Cell(x, y), anim);
+
+		// Set properties on the cell animation.
+		anim.GetComponent<SpriteRenderer>().color = color;
+		anim.GetComponent<Animator>().speed = speed;
 
 		if (full) {
 			anim.SkipToFull();

@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4875064270353786}
   - component: {fileID: 114162531296905628}
   m_Layer: 0
-  m_Name: CellManager
+  m_Name: GameOfLife
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -53,5 +53,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cellAnim: {fileID: 114868452270673042, guid: 99ca13816228db14b966fcd0d842a241, type: 2}
   pattern: galaxy
+  color: {r: 0, g: 0, b: 0, a: 1}
   initialDelay: 0.5
-  frameDuration: 0.5

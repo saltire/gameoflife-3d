@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CellAnimationScript : MonoBehaviour {
+public class CellScript : MonoBehaviour {
 	Animator animator;
 
 	public void SkipToFull() {
